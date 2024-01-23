@@ -9,7 +9,7 @@ import com.example.mynotesapp.room.data.NoteItem
     entities = [
         NoteItem::class
     ],
-    version = 1
+    version = 2
 )
 abstract class AppDatabase : RoomDatabase() {
 

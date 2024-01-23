@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,10 +25,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,7 +83,7 @@ fun NotesListScreen(navController: NavController, viewModel: NotesViewModel) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    navController.navigate(NotesAppScreens.NoteDetails.route)
+                    navController.navigate(NotesAppScreens.NoteDetails.route + "/0")
                 },
                 containerColor = Color.Black,
                 contentColor = Color.White
@@ -100,7 +107,7 @@ fun NotesListScreen(navController: NavController, viewModel: NotesViewModel) {
                         if (it.result.isEmpty()) {
                             NoNotes()
                         } else {
-                            NoteContent(it.result)
+                            NoteContent(it.result, navController, viewModel)
                         }
                     }
                 }
@@ -109,19 +116,57 @@ fun NotesListScreen(navController: NavController, viewModel: NotesViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteContent(items: List<NoteItem>) {
+fun NoteContent(items: List<NoteItem>, navController: NavController, viewModel: NotesViewModel) {
+    val deleteNotesViewModel by viewModel.mutableDeleteNote.observeAsState()
+
+    // Alert Dialog State
+    val openAlertDialog = remember {
+        mutableStateOf(false)
+    }
+    // Note ID State
+    val noteId = remember {
+        mutableIntStateOf(0)
+    }
+
+    /*LaunchedEffect(Unit){
+        viewModel.deleteNotesById(noteId.intValue)
+    }*/
+
+    if (openAlertDialog.value) {
+        EditDeleteDialog(
+            onEditRequest = {
+                navController.navigate(NotesAppScreens.NoteDetails.route + "/${noteId.intValue}")
+                openAlertDialog.value = false
+            },
+            onDeleteRequest = {
+                viewModel.deleteNotesById(noteId.intValue)
+                deleteNotesViewModel.let {
+                    openAlertDialog.value = false
+                }
+                viewModel.retrieveNotesList()
+            },
+            dialogTitle = "Edit/Remove Note",
+            dialogText = "You can Edit/ Remove the note",
+            icon = Icons.Default.Info
+        )
+    }
     LazyColumn {
-        items(items) {
+        items(items) { noteItem ->
             Card(
                 modifier = Modifier
                     .padding(10.dp)
                     .fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(1.dp)
+                elevation = CardDefaults.cardElevation(1.dp),
+                onClick = {
+                    openAlertDialog.value = true
+                    noteId.intValue = noteItem.id
+                }
             ) {
-                NotesTitle(item = it.noteTitle)
-                NoteDescription(item = it.noteDescription)
+                NotesTitle(item = noteItem.noteTitle)
+                NoteDescription(item = noteItem.noteDescription)
             }
         }
 
@@ -130,6 +175,9 @@ fun NoteContent(items: List<NoteItem>) {
 
 @Composable
 fun NotesTitle(item: String) {
+    val gradientColors = listOf(
+        Color.Cyan, Color.Blue, Color.Magenta
+    )
     Text(
         text = item,
         modifier = Modifier
@@ -138,7 +186,12 @@ fun NotesTitle(item: String) {
         fontSize = 20.sp,
         fontWeight = FontWeight.Bold,
         maxLines = 2,
-        overflow = TextOverflow.Ellipsis
+        overflow = TextOverflow.Ellipsis,
+        style = TextStyle(
+            brush = Brush.linearGradient(
+                colors = gradientColors
+            )
+        )
     )
 }
 

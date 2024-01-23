@@ -2,9 +2,11 @@ package com.example.mynotesapp.ui.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mynotesapp.room.data.NoteItem
+import com.example.mynotesapp.room.interactors.DeleteNoteByIdUseCase
 import com.example.mynotesapp.room.interactors.DeleteNotesUseCase
 import com.example.mynotesapp.room.interactors.InsertNotesInfoUseCase
 import com.example.mynotesapp.room.interactors.RetrieveNoteDetailsUseCase
@@ -24,8 +26,14 @@ class NotesViewModel @Inject constructor(
     private val updateNotesInfoUseCase: UpdateNotesInfoUseCase,
     private val deleteAllNotesUseCase: DeleteNotesUseCase,
     private val retrieveNotesUseCase: RetrieveNotesUseCase,
-    private val retrieveNoteDetailsUseCase: RetrieveNoteDetailsUseCase
+    private val retrieveNoteDetailsUseCase: RetrieveNoteDetailsUseCase,
+    private val deleteNoteByIdUseCase: DeleteNoteByIdUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+
+    //private val noteId: Int = checkNotNull(savedStateHandle["noteId"])
+
 
     private val _mutableInsertNote: MutableLiveData<Unit> = MutableLiveData()
     val mutableInsertNote: LiveData<Unit> = _mutableInsertNote
@@ -45,7 +53,7 @@ class NotesViewModel @Inject constructor(
 
     private val _mutableRetrieveNoteDetails = MutableStateFlow(
         RetrieveNoteDetailsState.Success(
-            NoteItem(noteTitle = "", noteDescription = "")
+            NoteItem(noteTitle = "", noteDescription = "", priority = "")
         )
     )
     val mutableRetrieveNoteDetails: StateFlow<RetrieveNoteDetailsState> =
@@ -53,7 +61,11 @@ class NotesViewModel @Inject constructor(
 
     private val _mutableRetrieveNoteDetailsError =
         MutableStateFlow(RetrieveNoteDetailsState.Error(Throwable()))
-    val mutableRetrieveNoteDetailsError: StateFlow<RetrieveNoteDetailsState> = _mutableRetrieveNoteDetailsError
+    val mutableRetrieveNoteDetailsError: StateFlow<RetrieveNoteDetailsState> =
+        _mutableRetrieveNoteDetailsError
+
+    private val _mutableDeleteNoteById:MutableLiveData<Unit> = MutableLiveData()
+    val mutableDeleteNoteById:LiveData<Unit> = _mutableDeleteNoteById
 
     fun insertNote(noteItem: NoteItem) = viewModelScope.launch {
         _mutableInsertNote.value = insertNotesInfoUseCase.invoke(noteItem)
@@ -85,6 +97,10 @@ class NotesViewModel @Inject constructor(
             .collect {
                 _mutableRetrieveNoteDetails.value = RetrieveNoteDetailsState.Success(it)
             }
+    }
+
+    fun deleteNotesById(id:Int) = viewModelScope.launch {
+        _mutableDeleteNoteById.value = deleteNoteByIdUseCase.invoke(id)
     }
 }
 

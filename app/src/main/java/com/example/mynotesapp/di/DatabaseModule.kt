@@ -28,6 +28,8 @@ object DatabaseModule {
             appContext,
             AppDatabase::class.java,
             "NoteDb"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 }

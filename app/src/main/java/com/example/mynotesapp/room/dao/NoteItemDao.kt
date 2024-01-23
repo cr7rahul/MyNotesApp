@@ -13,7 +13,7 @@ interface NoteItemDao {
     @Query("SELECT * FROM note_item")
     suspend fun retrieveNotes(): List<NoteItem>
 
-    @Query("SELECT id, title, description FROM note_item WHERE id =:id")
+    @Query("SELECT id, title, description, priority FROM note_item WHERE id =:id")
     suspend fun retrieveNoteDetails(id: Int): NoteItem
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -24,4 +24,7 @@ interface NoteItemDao {
 
     @Query("DELETE FROM note_item")
     suspend fun deleteNote()
+
+    @Query("DELETE FROM note_item WHERE id =:id")
+    suspend fun deleteNoteById(id: Int)
 }

@@ -11,5 +11,6 @@ data class NoteItem(
 
     @PrimaryKey(autoGenerate = true) var id: Int = 0,
     @ColumnInfo(name = "title") val noteTitle: String,
-    @ColumnInfo(name = "description") val noteDescription: String
+    @ColumnInfo(name = "description") val noteDescription: String,
+    @ColumnInfo(name = "priority") val priority: String
 )

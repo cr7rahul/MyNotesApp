@@ -55,4 +55,9 @@ class NotesRepository @Inject constructor(
      * Delete all notes
      */
     suspend fun deleteNote() = notesDao.deleteNote()
+
+    /**
+     * Delete by Id
+     */
+    suspend fun deleteNoteById(id: Int) = notesDao.deleteNoteById(id)
 }
